@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+  payload-cms-mongo:
+    image: mongo
+    networks:
+      - payload-default-network
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+  
+  payload-cms-mongo-express:
+    image: mongo-express
+    ports:
+      - 8081:8081
+    depends_on:
+      - payload-cms-mongo
+    networks:
+      - payload-default-network
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=root
+      - ME_CONFIG_MONDOGB_PORT=27017
+      - ME_CONFIG_MONGODB_SERVER=payload-cms-mongo
+
+  cms-application:
+    build: .
+    ports:
+      - 3000:3000
+    networks:
+      - payload-default-network
+    depends_on:
+      - payload-cms-mongo
+    command: yarn run dev
+    volumes:
+      - .:/application
+      - cms-node-modules:/application/node_modules
+
+networks:
+  payload-bridge-network:
+    driver: bridge
+  payload-default-network:
+
+volumes:
+  cms-node-modules:
